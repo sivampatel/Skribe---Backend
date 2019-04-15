@@ -9,7 +9,8 @@ const processImage = require('./routers/processImage');
 const userHandler = require('./routers/userHandler');
 const mongoose = require('mongoose');
 
-const uri = 'mongodb://localhost:27017/folders';
+//const uri = 'mongodb://localhost:27017/folders';
+const uri = "mongodb+srv://sivam:<password>@skribe-eaoku.gcp.mongodb.net/test?retryWrites=true";
 
 mongoose.connect(uri,{
   useNewUrlParser: true
