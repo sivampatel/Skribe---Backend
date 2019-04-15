@@ -1,21 +1,22 @@
 let express = require('express');
-
+const fileUploader = require('express-fileupload');
 let router  = express.Router();
 let mongoose = require('mongoose');
 let User = require('../models/user');
 let bodyParser = require('body-parser');
 
+router.use(fileUploader());
 
-mongoose.connect('mongodb://localhost:27017/folders',{
-  useNewUrlParser: true
-});
 
+
+router.use(bodyParser.urlencoded({
+    extended : false
+  }));
+  
 router.use(bodyParser.json());
 
 
 router.post('/createAccount',function(req,res){
-
-    console.log(req.body);
 
     let user = new User({
 
@@ -27,7 +28,6 @@ router.post('/createAccount',function(req,res){
 
 
     user.save();
-
     res.send(user);
 
 })
@@ -38,15 +38,12 @@ router.post('/login',function(req,res){
 
     User.findOne({username : req.body.username}).then(user => {
 
-        (req.body.password == user.password)
-        .then(
+        if(req.body.password == user.password)
+        {   
             console.log('yay you logged in'),
             res.send(user._id)
-            )
-    }).catch(err => {
-        res.send(err);
+        }
     })
-
 })
 
 module.exports = router

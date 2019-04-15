@@ -7,8 +7,13 @@ const app = express();
 const fileManager = require('./routers/fileManage');
 const processImage = require('./routers/processImage');
 const userHandler = require('./routers/userHandler');
+const mongoose = require('mongoose');
 
+const uri = 'mongodb://localhost:27017/folders';
 
+mongoose.connect(uri,{
+  useNewUrlParser: true
+});
 
 
 app.use('/user',userHandler);

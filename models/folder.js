@@ -4,9 +4,10 @@ const Schema = mongoose.Schema;
 
 const folderSchema = new mongoose.Schema({
 
+    hId: Number,
     _id: Schema.Types.ObjectId,
-    name: String,
-    documents : {type :Schema.Types.ObjectId , ref : 'documents'},
+    folderName: String,
+    documents : [{type :Schema.Types.ObjectId , ref : 'document'}],
     
 
 

@@ -4,11 +4,13 @@ const Schema = mongoose.Schema;
 
 const documentSchema = new mongoose.Schema({
 
+    hId: Number,
     _id: Schema.Types.ObjectId,
-    name: String,
-    content : String,
-    folder : {type :Schema.Types.ObjectId , ref : 'folder'},
-    image: Buffer
+    title: String,
+    desc: String,
+    content: String,
+    image: Buffer,
+    tags: []
 
 
 })

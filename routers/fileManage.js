@@ -2,11 +2,16 @@ let express = require('express');
 let router  = express.Router();
 let mongoose = require('mongoose');
 let Folder = require('../models/folder');
-let document = require('../models/document');
-let user = require('../models/user');
+let Document = require('../models/document');
+
 let bodyParser = require('body-parser');
 const fileUploader = require('express-fileupload');
 let Course = require('../models/course');
+const escapeStringRegexp = require('escape-string-regexp');
+
+
+
+
 
 
 
@@ -18,154 +23,107 @@ router.use(bodyParser.urlencoded({
 
 router.use(bodyParser.json());
 
-mongoose.connect('mongodb://localhost:27017/folders',{
-  useNewUrlParser: true
-});
 
+router.post('/createCourse',function(req,res){
 
+  let course = new Course({
 
-
-//params: userId
-//does: returns json of all user courses
-router.post('/getUserCourses', function(req,res){
-
-  user.findOne({_id : req.body.id})
-  .populate('courses','name')
-  .exec(function(err,user){
-    if(err) return handleError(err);
-    res.send(user)
+    _id: new mongoose.Types.ObjectId(),
+    name : req.body.name,
+    desc : req.body.desc,
+    color: req.body.color
   })
-
+  course.save();
+  res.send(course);
 })
 
 
 
-//params: folder name, also needs to
-//does: responds with all documents in given folder
-router.post('/getAllDocuments',function(req,res){
+router.post('/addFolder/:courseId',function(req,res){
 
-  Folder.
-  findOne({name : req.body.name})
-  .populate('documents','name')
-  .exec(function(err,folder){
-      if(err) return handleError(err);
-      res.send(folder.documents);
-  })
+  console.log(req.params);
 
-})
+  Course.findOne({_id:req.params.courseId}).then( course => {
 
-
-
-//params: user _id, name of course
-//creates a course under specified user
-router.post('/addCourse', function(req, res){
-
-  user.findOne({_id:req.body.id}).then(user => {
-
-    let courseId = new mongoose.Types.ObjectId();
-
-    let course = new Course({
-      name : req.body.name,
-      id : courseId
-    })
-
-    user.courses.push(courseId);
-    user.save();
-    course.save();
-
-    res.send(course);
-
-  })
-})
-
-
-
-//params: needs courseName, folder name
-router.post('/addFolder',function(req,res){
-
-    user.findOne({_id:req.body.id})
-
-    .then( user => {
-
-      let foldId = new mongoose.Types.ObjectId();
-
-      let folder = new Folder({
-
-      name : req.body.name,
-      _id : foldId
-
-      })
-
-    user.folders.push(foldId);
-    user.save();
-
-    folder.save();
-    res.send(folder);
-
-    })  
-})
-
-
-// this needs something
-router.get('/wordSearch', function(req,res){
-
-  var phrase = req.body.search;
   
 
-  console.log(req.body);
+    let foldId = new mongoose.Types.ObjectId();
 
-
-  document.find({content: new RegExp(phrase)}, function(err,docs){
-    
-    let names = new Array;
-
-    docs.forEach( doc => {
-      names.push(doc.name)
+    let folder = new Folder({
+      _id: foldId,
+      folderName: req.body.folderName,
     })
 
-    res.send(names);
+    folder.save();
+    course.folders.push(foldId);
+    course.save();
+
+    res.send(folder);
+  })
+})
+
+
+router.post('/addDocument/:folderId',function(req,res){
+
+  Folder.findOne({_id:req.params.folderId}).then(folder =>{
+    console.log(folder);
+    let docId = new mongoose.Types.ObjectId();
+
+    let doc = new Document({
+  
+    _id: docId,
+    title: req.body.title,
+    desc: req.body.desc,
+    content: req.body.content,
+    image: req.files.image,
+
+    })
+
+    folder.documents.push(docId);
+    folder.save();
+    doc.save();
+    res.send(doc);
+
+  })
+
+  
+
+})
+
+router.post('/textSearch/:search', function(req,res){
+
+  var phrase = req.params.search;
+  let sanitized = escapeStringRegexp(phrase);
+
+  console.log(sanitized);
+
+  Document.find({content: new RegExp(sanitized)}, function(err,docs){
+    
+    let docArray = new Array;
+
+    docs.forEach( doc => {
+      docArray.push(doc)
+    })
+
+    res.send(docArray);
     
   });
 })
 
 
 
-
-
-
-// this is fine, just needs to specify course also
-router.post('/addDocument',function(req,res){
-
+router.post('/fetchAll', function(req,res){
   
+  Course.find({})
+  .populate({path:'folders',populate : { path : 'documents'}})
+  .exec(function(err,course){
 
-  Folder.findOne({name:req.body.folder})
-  .then(fold => {
-    
-    let docId = new mongoose.Types.ObjectId();
-    
-
-    let doc = new document({
-
-    _id : docId,
-    name : req.body.name,
-    content : req.body.content,
-    folder : fold._id,
-    image : req.files.image.data
-
-  })
-
-
-  fold.documents.push(docId);
-  fold.save();
-
-  doc.save();
-  res.send(doc);
-    
-  })
-  .catch( err =>{
-    console.log(err)
+    res.send(course);
 
   })
 })
+  
+
+
 
 module.exports = router

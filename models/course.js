@@ -6,8 +6,10 @@ const courseSchema = new mongoose.Schema({
 
 
     _id: mongoose.Schema.Types.ObjectId,
+    hId: Number,
     name : String,
-    user : {type:Schema.Types.ObjectId, ref : 'user'}, 
+    desc : String,
+    color: String,
     folders: [{type : Schema.Types.ObjectId, ref : 'folder'}]
 
 })
